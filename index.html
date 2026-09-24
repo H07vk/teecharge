@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>TeeCharge</title>
+<meta name="description" content="Foto einer Lieferung/Charge an das TeeRezeptur-Hauptprogramm schicken." />
+<meta name="theme-color" content="#3a664e" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TeeCharge" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<style>
+  :root {
+    --bg: #f5f2ea;
+    --surface: #ffffff;
+    --surface-2: #eee9dc;
+    --text: #22301f;
+    --text-muted: #5b6b54;
+    --brand: #3a664e;
+    --brand-2: #4d8264;
+    --accent: #c78f3e;
+    --accent-text: #3a2c12;
+    --border: #ddd6c4;
+    --danger: #a3413a;
+    --danger-bg: #f7e6e4;
+    --ok: #2f6d46;
+    --ok-bg: #e6f0e8;
+    --radius-l: 20px;
+    --radius-m: 14px;
+    --shadow: 0 2px 10px rgba(34, 48, 31, 0.08), 0 1px 2px rgba(34, 48, 31, 0.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #182019;
+      --surface: #212b22;
+      --surface-2: #29342a;
+      --text: #eef1ea;
+      --text-muted: #a7b3a0;
+      --brand: #6fae87;
+      --brand-2: #8fc6a4;
+      --accent: #e0ac57;
+      --accent-text: #2a2013;
+      --border: #384335;
+      --danger: #e18379;
+      --danger-bg: #3a2422;
+      --ok: #7fd39a;
+      --ok-bg: #1f3527;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: max(14px, env(safe-area-inset-top)) 4px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    margin: 0 -16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  header h1 {
+    font-size: 19px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  header h1 .logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: linear-gradient(160deg, var(--brand-2), var(--brand));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex: none;
+  }
+  .icon-btn {
+    border: none;
+    background: var(--surface-2);
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:active { transform: scale(0.96); }
+
+  main {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 18px 0 max(32px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .capture-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    padding: 30px 18px;
+  }
+  .capture-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    max-width: 34ch;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 13px 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--brand);
+    color: #fff;
+    width: 100%;
+    padding: 16px 22px;
+    font-size: 16px;
+  }
+  .btn-accent {
+    background: var(--accent);
+    color: var(--accent-text);
+    width: 100%;
+  }
+  .btn-ghost {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .btn-text {
+    background: none;
+    color: var(--brand);
+    padding: 8px 4px;
+  }
+
+  .thumb-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .thumb-row img {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    flex: none;
+  }
+  .thumb-meta { flex: 1; min-width: 0; }
+  .thumb-meta .fname {
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .progress-wrap { display: none; flex-direction: column; gap: 6px; }
+  .progress-wrap.show { display: flex; }
+  .progress-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-track {
+    position: relative;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .progress-bar {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, var(--brand-2), var(--brand));
+    border-radius: 999px;
+    animation: progress-indeterminate 1.1s ease-in-out infinite;
+  }
+  @keyframes progress-indeterminate {
+    0% { left: -40%; }
+    100% { left: 100%; }
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  textarea, input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+    width: 100%;
+    font: inherit;
+    font-size: 15px;
+    padding: 12px 13px;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  textarea:focus, input:focus, select:focus {
+    outline: 2px solid var(--brand-2);
+    outline-offset: 1px;
+  }
+
+  .input-with-toggle { position: relative; }
+  .input-with-toggle input { padding-right: 44px; }
+  .toggle-visibility-btn {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: var(--text-muted);
+  }
+  .toggle-visibility-btn:active { background: var(--surface-2); }
+
+  .segmented {
+    display: flex;
+    background: var(--surface-2);
+    border-radius: var(--radius-m);
+    padding: 4px;
+    gap: 4px;
+  }
+  .segmented button {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 10px 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .segmented button.active {
+    background: var(--brand);
+    color: #fff;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .result-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .result-actions .btn { flex: 1; min-width: 140px; }
+
+  .status {
+    display: none;
+    border-radius: var(--radius-m);
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .status.show { display: block; }
+  .status.ok { background: var(--ok-bg); color: var(--ok); }
+  .status.err { background: var(--danger-bg); color: var(--danger); }
+  .status.info { background: var(--surface-2); color: var(--text-muted); }
+
+  .hint {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  [hidden] { display: none !important; }
+
+  /* Modal-Sheets (Einstellungen/Info) */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 26, 18, 0.5);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    .backdrop { align-items: center; padding: 20px; }
+  }
+  .sheet {
+    background: var(--surface);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 20px max(22px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  @media (min-width: 560px) {
+    .sheet { border-radius: 22px; }
+  }
+  .sheet h2 { margin: 0; font-size: 18px; }
+  .sheet .field { display: flex; flex-direction: column; gap: 6px; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .sheet-actions .btn { flex: 1; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 4px 0 10px;
+  }
+
+  .info-heading {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .info-text {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .changelog {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="logo">🧺</span> TeeCharge</h1>
+  <div style="display:flex; gap:8px;">
+    <button class="icon-btn" id="openInfoBtn" type="button" aria-label="Info" title="Info">ℹ️</button>
+    <button class="icon-btn" id="openSettingsBtn" type="button" aria-label="Einstellungen" title="Einstellungen">⚙️</button>
+  </div>
+</header>
+
+<main>
+
+  <section class="card capture-card" id="captureCard">
+    <div style="font-size:38px;">🍵📦</div>
+    <p>Foto einer Lieferung/eines Etiketts aufnehmen. Es wird ans TeeRezeptur-Hauptprogramm geschickt und dort automatisch ausgewertet.</p>
+    <button class="btn btn-primary" id="takePhotoBtn" type="button">Foto aufnehmen</button>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
+  </section>
+
+  <section class="card" id="workCard" hidden>
+    <div class="thumb-row">
+      <img id="thumbImg" alt="Aufgenommenes Foto" />
+      <div class="thumb-meta">
+        <div class="fname" id="fileName"></div>
+        <button class="btn btn-text" id="retakeBtn" type="button" style="padding-left:0;">↺ Neues Foto</button>
+      </div>
+    </div>
+
+    <div id="sendeBlock">
+      <button class="btn btn-primary" id="sendBtn" type="button">📤 An Hauptprogramm senden</button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label">
+        <span id="progressLabel">Sende Foto…</span>
+      </div>
+      <div class="progress-track"><div class="progress-bar"></div></div>
+      <button class="btn btn-ghost" id="abbrechenWarteBtn" type="button" hidden>Abbrechen</button>
+    </div>
+
+    <div id="formularBlock" hidden style="display:flex; flex-direction:column; gap:12px;">
+      <p class="hint" style="margin:0;">Vom Hauptprogramm erkannt – bitte prüfen und ggf. korrigieren:</p>
+      <div class="form-grid">
+        <div class="full">
+          <label class="field-label" for="fKraut">Kraut</label>
+          <input type="text" id="fKraut" />
+        </div>
+        <div>
+          <label class="field-label" for="fLieferant">Lieferant</label>
+          <input type="text" id="fLieferant" />
+        </div>
+        <div>
+          <label class="field-label" for="fArtikelname">Artikelname</label>
+          <input type="text" id="fArtikelname" />
+        </div>
+        <div>
+          <label class="field-label" for="fArtikelnr">Artikelnummer</label>
+          <input type="text" id="fArtikelnr" />
+        </div>
+        <div>
+          <label class="field-label" for="fCharge">Chargennummer</label>
+          <input type="text" id="fCharge" />
+        </div>
+        <div>
+          <label class="field-label" for="fLieferdatum">Lieferdatum</label>
+          <input type="date" id="fLieferdatum" />
+        </div>
+        <div>
+          <label class="field-label" for="fMhd">MHD</label>
+          <input type="date" id="fMhd" />
+        </div>
+        <div class="full">
+          <label class="field-label" for="fMenge">Menge (g)</label>
+          <input type="number" id="fMenge" />
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-ghost" id="verwerfenBtn" type="button">Verwerfen</button>
+        <button class="btn btn-accent" id="bestaetigenBtn" type="button">✓ Bestätigen &amp; zurücksenden</button>
+      </div>
+    </div>
+
+    <div class="status" id="statusBox"></div>
+  </section>
+
+  <p class="footer-note">Bot-Token und Chat-ID werden nur lokal auf diesem Gerät gespeichert.</p>
+</main>
+
+<div class="backdrop" id="settingsBackdrop" hidden>
+  <div class="sheet">
+    <h2>Einstellungen</h2>
+
+    <div class="field">
+      <label class="field-label" for="tokenInput">Telegram Bot-Token</label>
+      <input type="password" id="tokenInput" autocomplete="off" placeholder="123456789:AA…" />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="chatIdInput">Chat-ID oder Bot-Username</label>
+      <input type="text" id="chatIdInput" autocomplete="off" placeholder="z. B. 6505560889 oder @ImportBotTee_bot" />
+    </div>
+
+    <div class="field">
+      <label class="field-label">Bearbeitung</label>
+      <div class="segmented" id="modusSegmented">
+        <button type="button" data-modus="pc">🖥️ Am PC bearbeiten</button>
+        <button type="button" data-modus="handy">📱 Am Handy bearbeiten</button>
+      </div>
+      <p class="hint" style="margin:4px 0 0;">Gilt für jedes Foto, bis hier umgestellt. „Am PC“: das Formular öffnet sich automatisch im Hauptprogramm. „Am Handy“: die erkannten Daten kommen zur Bearbeitung/Bestätigung zurück auf dieses Gerät.</p>
+    </div>
+
+    <p class="hint">
+      Der Bot-Token kommt von @BotFather, die Chat-ID/der Bot-Username ist das Ziel, an das das Foto
+      gesendet wird (derselbe Bot, an den auch die bestehende Etikett-Erkennung sendet). Alle Werte
+      bleiben ausschließlich im lokalen Speicher dieses Browsers/Geräts.
+    </p>
+
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="cancelSettingsBtn" type="button">Abbrechen</button>
+      <button class="btn btn-primary" id="saveSettingsBtn" type="button">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bei jedem Update: Versionsnummer hier UND CACHE_NAME/APP_VERSION in sw.js hochzählen. -->
+<div class="backdrop" id="infoBackdrop" hidden>
+  <div class="sheet">
+    <h2>Info</h2>
+
+    <div>
+      <h3 class="info-heading">Was macht diese App?</h3>
+      <p class="info-text">Ersetzt für den Foto-Workflow den Umweg über OCR auf dem Handy: das Foto geht direkt an den Telegram-Bot, das TeeRezeptur-Hauptprogramm wertet es selbst per Texterkennung aus und gleicht es mit dem vollständigen Kräuter-/Lieferanten-Katalog ab. Je nach Einstellung „Bearbeitung“ passiert die letzte Prüfung/Korrektur dann automatisch im Hauptprogramm oder hier am Handy.</p>
+    </div>
+
+    <div>
+      <h3 class="info-heading">Autoren</h3>
+      <p class="info-text">
+        Holger Utzt – Konzept und fachliche Anforderungen<br />
+        Claude (Anthropic) – Umsetzung als Web-App
+      </p>
+    </div>
+
+    <div>
+      <h3 class="info-heading">Version</h3>
+      <p class="info-text">Aktuelle Version: <strong>1.0.0</strong></p>
+    </div>
+
+    <div>
+      <h3 class="info-heading">Änderungen</h3>
+      <ul class="changelog">
+        <li><strong>1.0.0</strong> – Erste Version: Foto aufnehmen und ans TeeRezeptur-Hauptprogramm schicken (Telegram), automatische Auswertung dort. Einstellung „Bearbeitung“ (Am PC / Am Handy) legt fest, ob die letzte Prüfung im Hauptprogramm oder hier am Handy passiert – im Handy-Fall mit Formular zum Korrigieren und Zurückschicken.</li>
+      </ul>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn btn-primary" id="closeInfoBtn" type="button" style="width:100%;">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "teeChargeSettings";
+  var LASTUPDATE_KEY = "teeChargeLastUpdateId";
+
+  // ─── Muss exakt zum Hauptprogramm passen (TeeRezeptur.html) ─────────────────
+  var CHARGE_DATEN_MARKER = "TEE-CHARGE-DATEN";
+  var CHARGE_FELD_LABELS = [
+    ["name", "Kraut"],
+    ["lieferant", "Lieferant"],
+    ["artikelname", "Artikelname"],
+    ["bestellnr", "Artikelnummer"],
+    ["chargennummer", "Chargennummer"],
+    ["lieferdatum", "Lieferdatum"],
+    ["mhd", "MHD"],
+    ["gelieferteMenge", "Menge"]
+  ];
+  function formatChargeDaten(felder) {
+    var zeilen = [CHARGE_DATEN_MARKER];
+    CHARGE_FELD_LABELS.forEach(function (paar) {
+      var feld = paar[0], label = paar[1];
+      var wert = felder && felder[feld] != null ? felder[feld] : "";
+      zeilen.push(label + ": " + wert);
+    });
+    return zeilen.join("\n");
+  }
+  function parseChargeDaten(text) {
+    if (!text || text.trim().toUpperCase().indexOf(CHARGE_DATEN_MARKER) !== 0) return null;
+    var felder = {};
+    text.split("\n").forEach(function (zeile) {
+      var idx = zeile.indexOf(":");
+      if (idx === -1) return;
+      var label = zeile.slice(0, idx).trim().toLowerCase();
+      var wert = zeile.slice(idx + 1).trim();
+      var eintrag = CHARGE_FELD_LABELS.find(function (p) { return p[1].toLowerCase() === label; });
+      if (eintrag) felder[eintrag[0]] = wert;
+    });
+    return felder;
+  }
+
+  var els = {
+    openInfoBtn: document.getElementById("openInfoBtn"),
+    infoBackdrop: document.getElementById("infoBackdrop"),
+    closeInfoBtn: document.getElementById("closeInfoBtn"),
+
+    openSettingsBtn: document.getElementById("openSettingsBtn"),
+    settingsBackdrop: document.getElementById("settingsBackdrop"),
+    cancelSettingsBtn: document.getElementById("cancelSettingsBtn"),
+    saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+    tokenInput: document.getElementById("tokenInput"),
+    chatIdInput: document.getElementById("chatIdInput"),
+    modusSegmented: document.getElementById("modusSegmented"),
+
+    captureCard: document.getElementById("captureCard"),
+    takePhotoBtn: document.getElementById("takePhotoBtn"),
+    cameraInput: document.getElementById("cameraInput"),
+
+    workCard: document.getElementById("workCard"),
+    thumbImg: document.getElementById("thumbImg"),
+    fileName: document.getElementById("fileName"),
+    retakeBtn: document.getElementById("retakeBtn"),
+
+    sendeBlock: document.getElementById("sendeBlock"),
+    sendBtn: document.getElementById("sendBtn"),
+
+    progressWrap: document.getElementById("progressWrap"),
+    progressLabel: document.getElementById("progressLabel"),
+    abbrechenWarteBtn: document.getElementById("abbrechenWarteBtn"),
+
+    formularBlock: document.getElementById("formularBlock"),
+    verwerfenBtn: document.getElementById("verwerfenBtn"),
+    bestaetigenBtn: document.getElementById("bestaetigenBtn"),
+
+    statusBox: document.getElementById("statusBox"),
+  };
+  var formFelder = {
+    name: document.getElementById("fKraut"),
+    lieferant: document.getElementById("fLieferant"),
+    artikelname: document.getElementById("fArtikelname"),
+    bestellnr: document.getElementById("fArtikelnr"),
+    chargennummer: document.getElementById("fCharge"),
+    lieferdatum: document.getElementById("fLieferdatum"),
+    mhd: document.getElementById("fMhd"),
+    gelieferteMenge: document.getElementById("fMenge")
+  };
+
+  function loadSettings() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var s = raw ? JSON.parse(raw) : {};
+      if (s.modus !== "pc" && s.modus !== "handy") s.modus = "pc";
+      return s;
+    } catch (e) {
+      return { modus: "pc" };
+    }
+  }
+  function saveSettings(settings) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function hasCredentials(settings) {
+    return !!(settings && settings.token && settings.chatId);
+  }
+
+  function getLastUpdateId() {
+    try { return parseInt(localStorage.getItem(LASTUPDATE_KEY), 10) || 0; } catch (e) { return 0; }
+  }
+  function setLastUpdateId(v) {
+    try { localStorage.setItem(LASTUPDATE_KEY, String(v)); } catch (e) {}
+  }
+
+  // ---- Einstellungen ----
+
+  var aktiverModus = "pc";
+  function modusWaehlen(m) {
+    aktiverModus = m;
+    var buttons = els.modusSegmented.querySelectorAll("button");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].classList.toggle("active", buttons[i].getAttribute("data-modus") === m);
+    }
+  }
+  els.modusSegmented.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-modus]");
+    if (btn) modusWaehlen(btn.getAttribute("data-modus"));
+  });
+
+  function openSettings() {
+    var s = loadSettings();
+    els.tokenInput.value = s.token || "";
+    els.chatIdInput.value = s.chatId || "";
+    modusWaehlen(s.modus || "pc");
+    els.settingsBackdrop.hidden = false;
+  }
+  function closeSettings() {
+    els.settingsBackdrop.hidden = true;
+  }
+
+  els.openInfoBtn.addEventListener("click", function () { els.infoBackdrop.hidden = false; });
+  els.closeInfoBtn.addEventListener("click", function () { els.infoBackdrop.hidden = true; });
+
+  els.openSettingsBtn.addEventListener("click", openSettings);
+  els.cancelSettingsBtn.addEventListener("click", function () {
+    // Erstlauf ohne gespeicherte Zugangsdaten: Abbrechen nicht erlauben, sonst steht die
+    // App ohne Ziel für den Versand da.
+    var s = loadSettings();
+    if (hasCredentials(s)) closeSettings();
+  });
+  els.saveSettingsBtn.addEventListener("click", function () {
+    var token = els.tokenInput.value.trim();
+    var chatId = els.chatIdInput.value.trim();
+    if (!token || !chatId) {
+      els.tokenInput.style.borderColor = token ? "var(--border)" : "var(--danger)";
+      els.chatIdInput.style.borderColor = chatId ? "var(--border)" : "var(--danger)";
+      return;
+    }
+    saveSettings({ token: token, chatId: chatId, modus: aktiverModus });
+    closeSettings();
+  });
+
+  // ---- Foto aufnehmen ----
+
+  var currentFile = null;
+  var currentObjectUrl = null;
+  var pollTimer = null;
+  var pollVersuche = 0;
+  var MAX_POLL_VERSUCHE = 45; // ca. 3 Minuten bei 4s-Takt
+
+  els.takePhotoBtn.addEventListener("click", function () {
+    els.cameraInput.value = "";
+    els.cameraInput.click();
+  });
+  els.cameraInput.addEventListener("change", function () {
+    var file = els.cameraInput.files && els.cameraInput.files[0];
+    if (!file) return;
+    startNewPhoto(file);
+  });
+  els.retakeBtn.addEventListener("click", resetToCapture);
+  els.verwerfenBtn.addEventListener("click", resetToCapture);
+  els.abbrechenWarteBtn.addEventListener("click", function () {
+    stopPolling();
+    resetToCapture();
+  });
+
+  function resetToCapture() {
+    stopPolling();
+    currentFile = null;
+    if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
+    els.workCard.hidden = true;
+    els.captureCard.hidden = false;
+    els.sendeBlock.hidden = false;
+    els.formularBlock.hidden = true;
+    els.progressWrap.classList.remove("show");
+    els.abbrechenWarteBtn.hidden = true;
+    hideStatus();
+  }
+
+  function startNewPhoto(file) {
+    currentFile = file;
+    if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = URL.createObjectURL(file);
+
+    els.thumbImg.src = currentObjectUrl;
+    els.fileName.textContent = file.name || "Foto";
+    els.captureCard.hidden = true;
+    els.workCard.hidden = false;
+    els.sendeBlock.hidden = false;
+    els.formularBlock.hidden = true;
+    els.progressWrap.classList.remove("show");
+    els.abbrechenWarteBtn.hidden = true;
+    hideStatus();
+  }
+
+  // ---- Foto senden ----
+
+  els.sendBtn.addEventListener("click", sendeFoto);
+
+  function sendeFoto() {
+    var settings = loadSettings();
+    if (!hasCredentials(settings)) { openSettings(); return; }
+    if (!currentFile) return;
+
+    els.sendeBlock.hidden = true;
+    els.progressWrap.classList.add("show");
+    els.progressLabel.textContent = "Sende Foto…";
+    els.abbrechenWarteBtn.hidden = true;
+    hideStatus();
+
+    var caption = settings.modus === "handy" ? "Am Handy bearbeiten" : "Am PC bearbeiten";
+    var formData = new FormData();
+    formData.append("chat_id", settings.chatId);
+    formData.append("caption", caption);
+    formData.append("photo", currentFile, currentFile.name || "foto.jpg");
+
+    fetch("https://api.telegram.org/bot" + encodeURIComponent(settings.token) + "/sendPhoto", {
+      method: "POST",
+      body: formData
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.ok) {
+          var desc = (data && data.description) || "Unbekannter Fehler von Telegram.";
+          throw new Error(desc);
+        }
+        if (settings.modus === "handy") {
+          els.progressLabel.textContent = "Warte auf Rückmeldung vom Hauptprogramm…";
+          els.abbrechenWarteBtn.hidden = false;
+          pollVersuche = 0;
+          startPolling(settings);
+        } else {
+          els.progressWrap.classList.remove("show");
+          showStatus("✓ Gesendet – wird automatisch im Hauptprogramm bearbeitet.", "ok");
+          setTimeout(resetToCapture, 1800);
+        }
+      })
+      .catch(function (err) {
+        els.progressWrap.classList.remove("show");
+        els.sendeBlock.hidden = false;
+        showStatus("Senden fehlgeschlagen: " + (err && err.message ? err.message : err), "err");
+      });
+  }
+
+  // ---- Auf Rückmeldung vom Hauptprogramm warten (nur Modus "Am Handy bearbeiten") ----
+
+  function startPolling(settings) {
+    pollEinmal(settings);
+  }
+  function stopPolling() {
+    if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+  }
+  function pollEinmal(settings) {
+    pollVersuche++;
+    var url = "https://api.telegram.org/bot" + encodeURIComponent(settings.token) +
+      "/getUpdates?offset=" + (getLastUpdateId() + 1) + "&limit=50";
+    fetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.ok || !data.result || data.result.length === 0) {
+          weiterPollenOderTimeout(settings);
+          return;
+        }
+        var hoechsteId = 0;
+        var treffer = null;
+        data.result.forEach(function (u) {
+          if (u.update_id > hoechsteId) hoechsteId = u.update_id;
+          if (!treffer && u.message && String(u.message.chat.id) === String(settings.chatId) &&
+              u.message.text && u.message.text.toUpperCase().indexOf(CHARGE_DATEN_MARKER) === 0) {
+            treffer = u.message.text;
+          }
+        });
+        if (hoechsteId > 0) setLastUpdateId(hoechsteId);
+        if (treffer) {
+          zeigeFormular(parseChargeDaten(treffer) || {});
+        } else {
+          weiterPollenOderTimeout(settings);
+        }
+      })
+      .catch(function () {
+        weiterPollenOderTimeout(settings);
+      });
+  }
+  function weiterPollenOderTimeout(settings) {
+    if (pollVersuche >= MAX_POLL_VERSUCHE) {
+      els.progressWrap.classList.remove("show");
+      showStatus("Noch keine Rückmeldung vom Hauptprogramm. Läuft es und ist die automatische Auswertung eingerichtet (Backup-Dialog → Automatische Foto-Auswertung)?", "err");
+      els.sendeBlock.hidden = false;
+      els.sendBtn.textContent = "🔄 Erneut prüfen";
+      els.sendBtn.onclick = function () {
+        els.sendBtn.textContent = "📤 An Hauptprogramm senden";
+        els.sendBtn.onclick = sendeFoto;
+        els.sendeBlock.hidden = true;
+        els.progressWrap.classList.add("show");
+        els.progressLabel.textContent = "Warte auf Rückmeldung vom Hauptprogramm…";
+        els.abbrechenWarteBtn.hidden = false;
+        pollVersuche = 0;
+        startPolling(settings);
+      };
+      return;
+    }
+    pollTimer = setTimeout(function () { pollEinmal(settings); }, 4000);
+  }
+
+  function zeigeFormular(felder) {
+    stopPolling();
+    els.progressWrap.classList.remove("show");
+    els.formularBlock.hidden = false;
+    Object.keys(formFelder).forEach(function (k) {
+      if (formFelder[k]) formFelder[k].value = felder[k] || "";
+    });
+    hideStatus();
+  }
+
+  els.bestaetigenBtn.addEventListener("click", function () {
+    var settings = loadSettings();
+    if (!hasCredentials(settings)) { openSettings(); return; }
+    var felder = {};
+    Object.keys(formFelder).forEach(function (k) {
+      felder[k] = formFelder[k] ? formFelder[k].value.trim() : "";
+    });
+    if (!felder.name) {
+      showStatus("Bitte mindestens das Kraut ausfüllen.", "err");
+      return;
+    }
+    els.bestaetigenBtn.disabled = true;
+    els.bestaetigenBtn.textContent = "Sende…";
+    fetch("https://api.telegram.org/bot" + encodeURIComponent(settings.token) + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: settings.chatId, text: formatChargeDaten(felder) })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.ok) throw new Error((data && data.description) || "Unbekannter Fehler von Telegram.");
+        showStatus("✓ Übernommen.", "ok");
+        setTimeout(resetToCapture, 1400);
+      })
+      .catch(function (err) {
+        showStatus("Zurücksenden fehlgeschlagen: " + (err && err.message ? err.message : err), "err");
+      })
+      .finally(function () {
+        els.bestaetigenBtn.disabled = false;
+        els.bestaetigenBtn.textContent = "✓ Bestätigen & zurücksenden";
+      });
+  });
+
+  function showStatus(msg, kind) {
+    els.statusBox.textContent = msg;
+    els.statusBox.className = "status show " + (kind || "info");
+  }
+  function hideStatus() {
+    els.statusBox.className = "status";
+    els.statusBox.textContent = "";
+  }
+
+  // ---- Start ----
+
+  var initial = loadSettings();
+  if (!hasCredentials(initial)) openSettings();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {
+        /* Offline-Caching ist optional - App funktioniert auch ohne SW-Registrierung */
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
