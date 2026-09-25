@@ -7,7 +7,7 @@
 // byteweise von der vorigen Version, der Browser erkennt das Update zuverlässig, verwirft den
 // alten Cache (siehe "activate" unten) und lädt die neuen Dateien frisch nach.
 
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.0.2";
 const CACHE_NAME = "teecharge-shell-" + APP_VERSION;
 const SHELL_FILES = [
   "./",

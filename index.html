@@ -197,6 +197,34 @@
     border-radius: var(--radius-m);
     border: 1px solid var(--border);
     flex: none;
+    cursor: pointer;
+  }
+
+  .photo-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 14, 9, 0.94);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .photo-overlay img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+  .photo-overlay .photo-overlay-hint {
+    position: absolute;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: rgba(255,255,255,0.75);
+    font-size: 12.5px;
   }
   .thumb-meta { flex: 1; min-width: 0; }
   .thumb-meta .fname {
@@ -447,7 +475,7 @@
     <div id="formularBlock" hidden style="display:flex; flex-direction:column; gap:12px;">
       <p class="hint" style="margin:0;">Vom Hauptprogramm erkannt – bitte prüfen und ggf. korrigieren:</p>
       <div class="form-grid">
-        <div class="full">
+        <div>
           <label class="field-label" for="fKraut">Kraut</label>
           <input type="text" id="fKraut" />
         </div>
@@ -455,7 +483,7 @@
           <label class="field-label" for="fLieferant">Lieferant</label>
           <input type="text" id="fLieferant" />
         </div>
-        <div>
+        <div class="full">
           <label class="field-label" for="fArtikelname">Artikelname</label>
           <input type="text" id="fArtikelname" />
         </div>
@@ -491,6 +519,11 @@
 
   <p class="footer-note">Bot-Token und Chat-ID werden nur lokal auf diesem Gerät gespeichert.</p>
 </main>
+
+<div class="photo-overlay" id="photoOverlay" hidden>
+  <img id="photoOverlayImg" alt="Foto in voller Größe" />
+  <div class="photo-overlay-hint">Antippen zum Zurückkehren</div>
+</div>
 
 <div class="backdrop" id="settingsBackdrop" hidden>
   <div class="sheet">
@@ -548,12 +581,13 @@
 
     <div>
       <h3 class="info-heading">Version</h3>
-      <p class="info-text">Aktuelle Version: <strong>1.0.1</strong></p>
+      <p class="info-text">Aktuelle Version: <strong>1.0.2</strong></p>
     </div>
 
     <div>
       <h3 class="info-heading">Änderungen</h3>
       <ul class=”changelog”>
+        <li><strong>1.0.2</strong> – Formular: Kraut und Lieferant stehen jetzt nebeneinander in einer Zeile, Artikelname bekommt eine eigene volle Zeile. Foto antippen öffnet es jetzt in voller Größe, nochmal antippen kehrt zurück.</li>
         <li><strong>1.0.1</strong> – Fehler behoben: Im Modus „Am Handy bearbeiten” wurde die Rückmeldung vom Hauptprogramm nie erkannt, wenn bei „Chat-ID oder Bot-Username” ein @Username eingetragen war (Telegram liefert dafür immer eine numerische ID zurück, ein reiner Textvergleich schlug daher fehl). Der Abgleich funktioniert jetzt korrekt für beide Schreibweisen.</li>
         <li><strong>1.0.0</strong> – Erste Version: Foto aufnehmen und ans TeeRezeptur-Hauptprogramm schicken (Telegram), automatische Auswertung dort. Einstellung „Bearbeitung” (Am PC / Am Handy) legt fest, ob die letzte Prüfung im Hauptprogramm oder hier am Handy passiert – im Handy-Fall mit Formular zum Korrigieren und Zurückschicken.</li>
       </ul>
@@ -628,6 +662,9 @@
     thumbImg: document.getElementById("thumbImg"),
     fileName: document.getElementById("fileName"),
     retakeBtn: document.getElementById("retakeBtn"),
+
+    photoOverlay: document.getElementById("photoOverlay"),
+    photoOverlayImg: document.getElementById("photoOverlayImg"),
 
     sendeBlock: document.getElementById("sendeBlock"),
     sendBtn: document.getElementById("sendBtn"),
@@ -754,6 +791,18 @@
     resetToCapture();
   });
 
+  // Foto antippen -> Vollbild öffnen (z.B. um es neben dem erkannten Formular zu prüfen).
+  // Nochmal antippen (auf das Vollbild) -> zurück zur aktuellen Ansicht (Formular/Senden-Button),
+  // die im Hintergrund unverändert bestehen bleibt - das Overlay legt sich nur darüber.
+  els.thumbImg.addEventListener("click", function () {
+    if (!currentObjectUrl) return;
+    els.photoOverlayImg.src = currentObjectUrl;
+    els.photoOverlay.hidden = false;
+  });
+  els.photoOverlay.addEventListener("click", function () {
+    els.photoOverlay.hidden = true;
+  });
+
   function resetToCapture() {
     stopPolling();
     currentFile = null;
@@ -764,6 +813,8 @@
     els.formularBlock.hidden = true;
     els.progressWrap.classList.remove("show");
     els.abbrechenWarteBtn.hidden = true;
+    els.photoOverlay.hidden = true;
+    els.photoOverlayImg.src = "";
     hideStatus();
   }
 
