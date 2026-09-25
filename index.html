@@ -548,13 +548,14 @@
 
     <div>
       <h3 class="info-heading">Version</h3>
-      <p class="info-text">Aktuelle Version: <strong>1.0.0</strong></p>
+      <p class="info-text">Aktuelle Version: <strong>1.0.1</strong></p>
     </div>
 
     <div>
       <h3 class="info-heading">Änderungen</h3>
-      <ul class="changelog">
-        <li><strong>1.0.0</strong> – Erste Version: Foto aufnehmen und ans TeeRezeptur-Hauptprogramm schicken (Telegram), automatische Auswertung dort. Einstellung „Bearbeitung“ (Am PC / Am Handy) legt fest, ob die letzte Prüfung im Hauptprogramm oder hier am Handy passiert – im Handy-Fall mit Formular zum Korrigieren und Zurückschicken.</li>
+      <ul class=”changelog”>
+        <li><strong>1.0.1</strong> – Fehler behoben: Im Modus „Am Handy bearbeiten” wurde die Rückmeldung vom Hauptprogramm nie erkannt, wenn bei „Chat-ID oder Bot-Username” ein @Username eingetragen war (Telegram liefert dafür immer eine numerische ID zurück, ein reiner Textvergleich schlug daher fehl). Der Abgleich funktioniert jetzt korrekt für beide Schreibweisen.</li>
+        <li><strong>1.0.0</strong> – Erste Version: Foto aufnehmen und ans TeeRezeptur-Hauptprogramm schicken (Telegram), automatische Auswertung dort. Einstellung „Bearbeitung” (Am PC / Am Handy) legt fest, ob die letzte Prüfung im Hauptprogramm oder hier am Handy passiert – im Handy-Fall mit Formular zum Korrigieren und Zurückschicken.</li>
       </ul>
     </div>
 
@@ -839,6 +840,26 @@
   function stopPolling() {
     if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
   }
+  // Vergleicht eine eingehende Nachricht mit dem eingestellten Ziel (settings.chatId), das laut
+  // Einstellungsfeld entweder eine numerische Chat-ID ODER ein "@Username" sein darf. Telegram
+  // liefert in message.chat.id/message.from.id aber IMMER eine Zahl, nie den @Username-String -
+  // ein direkter String-Vergleich "chat.id === '@ImportBotTee_bot'" schlägt daher immer fehl,
+  // wenn das Feld mit @Username befüllt wurde. Deshalb hier je nach Form des eingestellten Werts
+  // gegen die passende Eigenschaft vergleichen.
+  function nachrichtVonZiel(msg, zielEinstellung) {
+    if (!msg || !zielEinstellung) return false;
+    var ziel = String(zielEinstellung).trim();
+    if (ziel.charAt(0) === "@") {
+      var zielName = ziel.slice(1).toLowerCase();
+      var chatName = (msg.chat && msg.chat.username) || "";
+      var vonName = (msg.from && msg.from.username) || "";
+      return chatName.toLowerCase() === zielName || vonName.toLowerCase() === zielName;
+    }
+    var chatId = msg.chat && msg.chat.id != null ? String(msg.chat.id) : "";
+    var vonId = msg.from && msg.from.id != null ? String(msg.from.id) : "";
+    return chatId === ziel || vonId === ziel;
+  }
+
   function pollEinmal(settings) {
     pollVersuche++;
     var url = "https://api.telegram.org/bot" + encodeURIComponent(settings.token) +
@@ -854,7 +875,7 @@
         var treffer = null;
         data.result.forEach(function (u) {
           if (u.update_id > hoechsteId) hoechsteId = u.update_id;
-          if (!treffer && u.message && String(u.message.chat.id) === String(settings.chatId) &&
+          if (!treffer && u.message && nachrichtVonZiel(u.message, settings.chatId) &&
               u.message.text && u.message.text.toUpperCase().indexOf(CHARGE_DATEN_MARKER) === 0) {
             treffer = u.message.text;
           }
