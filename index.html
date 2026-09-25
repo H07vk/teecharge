@@ -581,12 +581,13 @@
 
     <div>
       <h3 class="info-heading">Version</h3>
-      <p class="info-text">Aktuelle Version: <strong>1.0.2</strong></p>
+      <p class="info-text">Aktuelle Version: <strong>1.0.3</strong></p>
     </div>
 
     <div>
       <h3 class="info-heading">Änderungen</h3>
       <ul class=”changelog”>
+        <li><strong>1.0.3</strong> – Foto wird direkt nach der Aufnahme automatisch gesendet, der Zwischenschritt „An Hauptprogramm senden” antippen entfällt (der Button erscheint nur noch, falls der Versand fehlschlägt oder erneut versucht werden muss).</li>
         <li><strong>1.0.2</strong> – Formular: Kraut und Lieferant stehen jetzt nebeneinander in einer Zeile, Artikelname bekommt eine eigene volle Zeile. Foto antippen öffnet es jetzt in voller Größe, nochmal antippen kehrt zurück.</li>
         <li><strong>1.0.1</strong> – Fehler behoben: Im Modus „Am Handy bearbeiten” wurde die Rückmeldung vom Hauptprogramm nie erkannt, wenn bei „Chat-ID oder Bot-Username” ein @Username eingetragen war (Telegram liefert dafür immer eine numerische ID zurück, ein reiner Textvergleich schlug daher fehl). Der Abgleich funktioniert jetzt korrekt für beide Schreibweisen.</li>
         <li><strong>1.0.0</strong> – Erste Version: Foto aufnehmen und ans TeeRezeptur-Hauptprogramm schicken (Telegram), automatische Auswertung dort. Einstellung „Bearbeitung” (Am PC / Am Handy) legt fest, ob die letzte Prüfung im Hauptprogramm oder hier am Handy passiert – im Handy-Fall mit Formular zum Korrigieren und Zurückschicken.</li>
@@ -783,6 +784,10 @@
     var file = els.cameraInput.files && els.cameraInput.files[0];
     if (!file) return;
     startNewPhoto(file);
+    // Der Zwischenschritt "An Hauptprogramm senden" antippen entfällt - das Foto geht direkt
+    // nach der Aufnahme raus. Der Button bleibt trotzdem im Markup (sendeBlock) und wird
+    // sichtbar, falls das Senden fehlschlägt oder beim Timeout ein erneuter Versuch nötig ist.
+    sendeFoto();
   });
   els.retakeBtn.addEventListener("click", resetToCapture);
   els.verwerfenBtn.addEventListener("click", resetToCapture);
